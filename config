@@ -1,0 +1,7 @@
+# Testing configuration file, base generated config file to come
+
+# List of directories you want to backup
+DIRECTORIES=(
+    '/Users/mech/testing_dir/' 
+    '/Users/mech/Movies/'
+    )
