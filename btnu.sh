@@ -1,18 +1,68 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# backthatnasup(btnu)
+#
+# A script to deal with adhoc backups as well
+# as scheduled backups when paired with
+# a cron job. All parameters to be configured
+# via a configuration file found in your '.config'
+# directory.
+#
+# by CtrlAltMech
+#
 
+# Exit on error
 set -e
 
+# Configuration file to source from
 readonly CONFIG="$HOME/git_repos/BackThatNasUp/config"
 
+# Output Colors
+readonly RED="\e[31m"
+readonly GREEN="\e[32m"
+readonly YELLOW="\e[33m"
+readonly CYAN="\e[36m"
+readonly ENDCOLOR="\e[0m"
+
+# Source the configuration file
 # shellcheck source=./config 
 . "$CONFIG"
 
-# Loops through the list of directories I have in my config file and backs them up.
-# dry-run flag set for testing
-for i in "${DIRECTORIES[@]}" 
-do
-    rsync --dry-run -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$i" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-done
+# Main Logic
+main () {
+    if [[ $1 == "-R" ]]; then
+        rsync_job
+    else
+        rsync_job "--dry-run"
+    fi
+}
 
-#rsync --dry-run -avzhpe ssh /mnt/user/Music mech@thiccpad:/media/veracrypt2/
+# Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
+rsync_job () {
+    if [[ $1 == "--dry-run" ]]; then
+        for dir in "${DIRECTORIES[@]}"
+        do
+            rsync --dry-run -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+        done
+    elif [[ $1 == "" ]]; then
+        for dir in "${DIRECTORIES[@]}"
+        do
+            rsync -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+        done
+    else
+        exit 1
+    fi
+}
+
+main "$@"
+
+
+
+
+
+
+
+
+
+
 

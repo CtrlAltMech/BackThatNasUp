@@ -4,6 +4,7 @@
 DIRECTORIES=(
     '/Users/mech/Pictures/Wallpapers' 
     '/Users/mech/testing_dir/testGo'
+    '/Users/mech/Pictures/screenshots'
     )
 
 # Meant to be a different host, but located on-site. 
