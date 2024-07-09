@@ -1,24 +1,23 @@
 # Testing configuration file, base generated config file to come
 
-# List of directories you want to backup
+# List of directories you want to backup.
 DIRECTORIES=(
-    '/Users/mech/Pictures/Wallpapers' 
-    '/Users/mech/testing_dir/testGo'
-    '/Users/mech/Pictures/screenshots'
-    )
+        '/Example_directory/'
+        '/Another/Example'
+        )
 
 # Meant to be a different host, but located on-site. 
 # Enter IP or hostname.
-ONSITE_BACKUP_HOST="192.168.4.11"
+ONSITE_BACKUP_HOST=""
 
 # Path on that host where the backup will be stored
-ONSITE_BACKUP_PATH="/home/mech/receive_directory"
+ONSITE_BACKUP_PATH=""
 
 # Username for onsite host
-ONSITE_USERNAME="mech"
+ONSITE_USERNAME=""
 
 # Onsite host SSH priv key path
-ONSITE_SSHKEY_PATH="$HOME/.ssh/ansible_master"
+ONSITE_SSHKEY_PATH=""
 
 # Mean to be a different host located offsite away from your local backup host.
 # Enter IP or hostname.

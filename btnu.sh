@@ -15,7 +15,7 @@
 set -e
 
 # Configuration file to source from
-readonly CONFIG="$HOME/git_repos/BackThatNasUp/config"
+readonly CONFIG="$HOME/.config/btnurc"
 
 # Output Colors
 readonly RED="\e[31m"
@@ -24,16 +24,25 @@ readonly YELLOW="\e[33m"
 readonly CYAN="\e[36m"
 readonly ENDCOLOR="\e[0m"
 
-# Source the configuration file
-# shellcheck source=./config 
-. "$CONFIG"
 
 # Main Logic
 main () {
+    conf_check
     if [[ $1 == "-R" ]]; then
         rsync_job
     else
         rsync_job "--dry-run"
+    fi
+}
+
+# Check for configuration file
+conf_check () {
+    if  [[ -e $CONFIG ]]; then
+        # shellcheck source=../../.config/btnurc
+        . "$CONFIG"
+    else
+        echo "Can't find that shit!"
+        exit 1
     fi
 }
 
