@@ -28,6 +28,7 @@ readonly ENDCOLOR="\e[0m"
 # Main Logic
 main () {
     conf_check
+    conf_var_check
     if [[ $1 == "-R" ]]; then
         rsync_job
     else
@@ -44,6 +45,16 @@ conf_check () {
         echo "Can't find that shit!"
         exit 1
     fi
+}
+
+# Check to make sure the bare-minimum config variables are set.
+conf_var_check () {
+    local msg="$(echo -e "${RED}ONSITE variables and at least one directory need to be set in config.${ENDCOLOR}")"
+    : "${DIRECTORIES:?$msg}"
+    : "${ONSITE_BACKUP_HOST:?$msg}"
+    : "${ONSITE_BACKUP_PATH:?$msg}"
+    : "${ONSITE_USERNAME:?$msg}"
+    : "${ONSITE_SSHKEY_PATH:?$msg}"
 }
 
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
