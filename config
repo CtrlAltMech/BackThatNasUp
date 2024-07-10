@@ -1,4 +1,4 @@
-# Testing configuration file, base generated config file to come
+# Config file for btnu
 
 # List of directories you want to backup.
 DIRECTORIES=(

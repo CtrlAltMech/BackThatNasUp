@@ -29,6 +29,8 @@ readonly ENDCOLOR="\e[0m"
 main () {
     conf_check
     conf_var_check
+    # Only runs the actual backup if specified.
+    # If anything other than -R is put, this will only do a dry-run
     if [[ $1 == "-R" ]]; then
         rsync_job
     else
@@ -42,8 +44,7 @@ conf_check () {
         # shellcheck source=../../.config/btnurc
         . "$CONFIG"
     else
-        echo "Can't find that shit!"
-        exit 1
+        conf_prompt
     fi
 }
 
@@ -55,6 +56,67 @@ conf_var_check () {
     : "${ONSITE_BACKUP_PATH:?$msg}"
     : "${ONSITE_USERNAME:?$msg}"
     : "${ONSITE_SSHKEY_PATH:?$msg}"
+}
+
+# If no configuration file is seen it will prompt to generate one 
+conf_prompt () {
+    local conf_choice
+    read -p "$(echo -e "${YELLOW}No configuration file found. Would you like to create one? (y/n): ${ENDCOLOR}")" conf_choice
+    
+    while ! [[ $conf_choice =~ (^y$|^Y$|^n$|^N$) ]]
+    do
+        read -p "$(echo -e "${RED}Not a valid option. Would you like to create a config file? (y/n): ${ENDCOLOR}")" conf_choice
+    done
+
+    if [[ $conf_choice =~ (^y$|^Y$) ]]; then
+        conf_make
+    elif [[ "$conf_choice" =~ (^n$|^N$) ]]; then
+        echo -e "${YELLOW}Goodbye!${ENDCOLOR}"
+        exit 0
+    fi
+}
+
+
+conf_make () {
+	
+	cat <<- EOF > "$CONFIG"
+	# Config file for btnu
+	
+	# List of directories you want to backup.
+	DIRECTORIES=(
+		'/Example_directory/'
+		'/Another/Example/'
+		)
+	
+	# Meant to be a different host, but located locally
+	# Enter IP or hostname.
+	ONSITE_BACKUP_HOST=""
+	
+	# Path on the onsite host where the backup will be stored
+	ONSITE_BACKUP_PATH=""
+	
+	# Username for onsite host
+	ONSITE_USERNAME=""
+	
+	# Onsite host SSH priv key path
+	ONSITE_SSHKEY_PATH=""
+	
+	# Meant to be a different host located offsite away from your onsite host.
+	OFFSITE_BACKUP_HOST=""
+	
+	# Path on remote host where the backup will be stored
+	OFFSITE_BACKUP_PATH=""
+	
+	# Username for offsite host
+	OFFSITE_USERNAME=""
+	
+	# Offsite host SSH priv key path
+	OFFSITE_SSHKEY_PATH=""
+	
+	EOF
+    echo -e "${GREEN}Config file $CONFIG created!${ENDCOLOR}"
+    $EDITOR $CONFIG # Open config in editor
+    exit 0
 }
 
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
