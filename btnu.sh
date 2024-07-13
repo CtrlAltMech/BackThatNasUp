@@ -58,6 +58,11 @@ conf_var_check () {
     : "${ONSITE_SSHKEY_PATH:?$msg}"
 }
 
+# Check to make sure the directories on the host are valid.
+conf_path_check () {
+    :
+}
+
 # If no configuration file is seen it will prompt to generate one 
 conf_prompt () {
     local conf_choice
