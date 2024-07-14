@@ -93,14 +93,25 @@ conf_prompt () {
     fi
 }
 
+# Ping command to verify if server is online
+host_ping () {
+    timeout 1 ping -c 1 "$1" &> /dev/null
+}
+
 # Check to make sure your onsite/offsite/both server/s are up.
 check_server_alive () {
-    if timeout 1 ping -c 1 "$ONSITE_BACKUP_HOST" &> /dev/null; then
-        echo -e "Looks to be up!"
-        exit 0
-    else
-        echo -e "Looks to be down :("
+    # if timeout 1 ping -c 1 "$ONSITE_BACKUP_HOST" &> /dev/null; then
+    #     echo -e "Looks to be up!"
+    #     exit 0
+    # else
+    #     echo -e "Looks to be down :("
+    #     exit 1
+    #fi
+    if [[ "$OFFSITE_BACKUP_HOST" == "" ]] && host_ping "ONSITE_BACKUP_HOST"; then
+        echo -e "${GREEN}Onsite server is up!\n${ENDCOLOR}"
         exit 1
+    elif "$OFFSITE_BACKUP_HOST" != ""; then  
+        :
     fi
 }
 
