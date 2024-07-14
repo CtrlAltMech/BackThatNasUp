@@ -30,6 +30,7 @@ main () {
     conf_check
     conf_var_check
     conf_path_check
+    check_server_alive
     # Only runs the actual backup if specified.
     # If anything other than -R is put, this will only do a dry-run
     if [[ $1 == "-R" ]]; then
@@ -92,6 +93,16 @@ conf_prompt () {
     fi
 }
 
+# Check to make sure your onsite/offsite/both server/s are up.
+check_server_alive () {
+    if timeout 1 ping -c 1 "$ONSITE_BACKUP_HOST" &> /dev/null; then
+        echo -e "Looks to be up!"
+        exit 0
+    else
+        echo -e "Looks to be down :("
+        exit 1
+    fi
+}
 
 conf_make () {
 	
