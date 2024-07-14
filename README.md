@@ -7,6 +7,7 @@ This is still VERY much a work-in-progress. It backs stuff up via a config....th
 ## Current functionality
 
 - Will generate a configuration file when running script for the first time.
+- Will check to make sure all filepaths in config exist before running
 - Will backup to all directories listed in the configuration file
 - Will run a dry-run to verify backups and can run the actual backup if the flag is set.
 
