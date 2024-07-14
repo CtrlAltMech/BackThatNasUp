@@ -29,6 +29,7 @@ readonly ENDCOLOR="\e[0m"
 main () {
     conf_check
     conf_var_check
+    conf_path_check
     # Only runs the actual backup if specified.
     # If anything other than -R is put, this will only do a dry-run
     if [[ $1 == "-R" ]]; then
@@ -56,6 +57,21 @@ conf_var_check () {
     : "${ONSITE_BACKUP_PATH:?$msg}"
     : "${ONSITE_USERNAME:?$msg}"
     : "${ONSITE_SSHKEY_PATH:?$msg}"
+}
+
+# Check to make sure the directories on the host are valid.
+conf_path_check () {
+    echo -e "${CYAN}Checking filepaths...${ENDCOLOR}\n"
+    for dir in "${DIRECTORIES[@]}"
+    do
+        if [[ -d "$dir" ]]; then
+            : # Do nothing. Path is valid.
+        else
+            echo -e "${RED}$dir doesn't exist. Verify path in config.${ENDCOLOR}"
+            exit 1
+        fi
+    done
+    echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
 }
 
 # If no configuration file is seen it will prompt to generate one 
