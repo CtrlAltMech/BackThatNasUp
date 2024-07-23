@@ -104,8 +104,6 @@ host_ping () {
             exit 1
         fi
     done
-    exit 0
-
 }
 
 # Check to make sure your onsite/offsite/both server/s are up.
