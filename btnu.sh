@@ -30,6 +30,7 @@ main () {
     conf_check
     conf_var_check
     conf_path_check
+    check_server_alive
     # Only runs the actual backup if specified.
     # If anything other than -R is put, this will only do a dry-run
     if [[ $1 == "-R" ]]; then
@@ -92,6 +93,27 @@ conf_prompt () {
     fi
 }
 
+# Ping command to verify if server is online
+host_ping () {
+    for server in "$@"
+    do
+        if timeout 1 ping -c 1 "$server" &> /dev/null; then
+            echo -e "${GREEN}$server looks to be up!${ENDCOLOR}"
+        else
+            echo -e "${RED}$server looks to be down :(${ENDCOLOR}"
+            exit 1
+        fi
+    done
+}
+
+# Check to make sure your onsite/offsite/both server/s are up.
+check_server_alive () {
+    if [[ "$OFFSITE_BACKUP_HOST" != "" ]]; then
+        host_ping "$ONSITE_BACKUP_HOST" "$OFFSITE_BACKUP_HOST"
+    else
+        host_ping "$ONSITE_BACKUP_HOST"
+    fi
+}
 
 conf_make () {
 	
