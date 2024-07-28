@@ -35,6 +35,10 @@ main () {
     # If anything other than -R is put, this will only do a dry-run
     if [[ $1 == "-R" ]]; then
         rsync_job
+    elif [[ $1 == "-dm" ]]; then
+        rsync_job "-dm"
+    elif [[ $1 == "-rm" ]]; then
+        rsync_job "-rm"
     else
         rsync_job "--dry-run"
     fi
@@ -159,6 +163,7 @@ conf_make () {
 
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
 rsync_job () {
+    # dry run flag without mirroring passed if no arguments are passed to script
     if [[ $1 == "--dry-run" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
@@ -168,6 +173,16 @@ rsync_job () {
         for dir in "${DIRECTORIES[@]}"
         do
             rsync -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+        done
+    elif [[ $1 == "-dm" ]]; then
+        for dir in "${DIRECTORIES[@]}"
+        do
+            rsync --dry-run --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+        done
+    elif [[ $1 == "-rm" ]]; then
+        for dir in "${DIRECTORIES[@]}"
+        do
+            rsync --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
         done
     else
         exit 1
