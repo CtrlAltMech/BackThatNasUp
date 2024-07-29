@@ -31,13 +31,19 @@ main () {
     conf_var_check
     conf_path_check
     check_server_alive
-    # Only runs the actual backup if specified.
-    # If anything other than -R is put, this will only do a dry-run
-    if [[ $1 == "-R" ]]; then
-        rsync_job
-    else
-        rsync_job "--dry-run"
-    fi
+
+    while getopts ":mMrRh" OPTION;
+    do
+        case "$OPTION" in
+            m) rsync_job "-m";;
+            M) rsync_job "-M";;
+            R) rsync_job "-R";;
+            r) rsync_job "-r";;
+            h) echo "Placeholder for help options";;
+            \?) echo "Invalid selection placeholder";;
+
+        esac
+    done
 }
 
 # Check for configuration file
@@ -159,15 +165,26 @@ conf_make () {
 
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
 rsync_job () {
-    if [[ $1 == "--dry-run" ]]; then
+    # dry run flag without mirroring passed if no arguments are passed to script
+    if [[ $1 == "-r" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
             rsync --dry-run -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
         done
-    elif [[ $1 == "" ]]; then
+    elif [[ $1 == "-R" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
             rsync -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+        done
+    elif [[ $1 == "-m" ]]; then
+        for dir in "${DIRECTORIES[@]}"
+        do
+            rsync --dry-run --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+        done
+    elif [[ $1 == "-M" ]]; then
+        for dir in "${DIRECTORIES[@]}"
+        do
+            rsync --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
         done
     else
         exit 1
