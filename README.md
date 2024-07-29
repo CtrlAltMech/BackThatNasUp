@@ -6,10 +6,12 @@ This is still VERY much a work-in-progress. It backs stuff up via a config....th
 
 ## Current functionality
 
-- Will generate a configuration file when running script for the first time.
+- Will generate a configuration file when running script for the first time (with or without arguments).
 - Will check to make sure all filepaths in config exist before running
-- Will backup to all directories listed in the configuration file
-- Will run a dry-run to verify backups and can run the actual backup if the flag is set.
+- Verify the local paths in config exist
+- Verify servers are up
+- Will run a dry-run to check what will be backed up.
+- Will backup to all directories listed in the configuration file (with or without mirroring depending on flags passed)
 
 ## Requirements
 
@@ -73,12 +75,17 @@ To use btnu, follow the instructions below:
 *Be aware: references to your home directory in the conf file must be done with $HOME, not ~. $HOME is a shell variable, and ~ is an expansion symbol.*
 
 2. Once the configuration file is created your editor should open to edit the file.
-3. When the configuration file is filled out run the `./btnu.sh` command again to do a dry run of your backup
-4. Once that looks like it is correct run `./btnu.sh -R` to run the backup
+3. When the configuration file is filled out run you can run the script using one of the flags below.
 
 ## Flags :triangular_flag_on_post:
-- `btnu.sh` - will just run a dry-run of your directories so you can verify what will be backed up
-- `btnu.sh -R` - will run your backups
+- `btnu.sh` - Will create a configuration file if none is present. If one is you will be presented with a help dialogue.
+- `btnu.sh -m` - Will run a dry-run of a mirror backup job
+- `btnu.sh -M` - Will run a mirror backup job
+- `btnu.sh -r` - Will run a dry-run backup without mirroring (-avzhpe rsync options)
+- `btnu.sh -R` - Will run a backup without mirroring (-avzhpe rsync options)
+
+*MORE GRANULAR CONTROLS TO COME IN THE FUTURE*
+
 
 ## Contributing :handshake:
 I would love to hear if there are any bugs or a requested feature! :heart:
