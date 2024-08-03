@@ -103,7 +103,7 @@ conf_prompt () {
 host_ping () {
     for server in "$@"
     do
-        if timeout 1 ping -c 1 "$server" &> /dev/null; then
+        if timeout 2 ping -c 1 "$server" &> /dev/null; then
             echo -e "${GREEN}$server looks to be up!${ENDCOLOR}"
         else
             echo -e "${RED}$server looks to be down :(${ENDCOLOR}"
@@ -114,10 +114,13 @@ host_ping () {
 
 # Check to make sure your onsite/offsite/both server/s are up.
 check_server_alive () {
+    echo -e "${CYAN}Checking server status...${ENDCOLOR}\n"
     if [[ "$OFFSITE_BACKUP_HOST" != "" ]]; then
         host_ping "$ONSITE_BACKUP_HOST" "$OFFSITE_BACKUP_HOST"
+        echo ""
     else
         host_ping "$ONSITE_BACKUP_HOST"
+        echo ""
     fi
 }
 
@@ -169,22 +172,30 @@ rsync_job () {
     if [[ $1 == "-r" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
-            rsync --dry-run -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
+            rsync --dry-run -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     elif [[ $1 == "-R" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
-            rsync -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
+            rsync -avzhpPe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     elif [[ $1 == "-m" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
-            rsync --dry-run --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
+            rsync --dry-run --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     elif [[ $1 == "-M" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
-            rsync --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
+            rsync --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     else
         exit 1
