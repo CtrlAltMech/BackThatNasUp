@@ -169,22 +169,30 @@ rsync_job () {
     if [[ $1 == "-r" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
+            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
             rsync --dry-run -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     elif [[ $1 == "-R" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
+            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
             rsync -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     elif [[ $1 == "-m" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
+            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
             rsync --dry-run --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     elif [[ $1 == "-M" ]]; then
         for dir in "${DIRECTORIES[@]}"
         do
+            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
             rsync --delete -avzhpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo ""
         done
     else
         exit 1
