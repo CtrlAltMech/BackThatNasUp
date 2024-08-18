@@ -29,7 +29,7 @@ readonly ENDCOLOR="\e[0m"
 main () {
     conf_check
     conf_var_check
-    conf_path_check
+    conf_path_check "$1"     
     check_server_alive
 
     while getopts ":mMrRh" OPTION;
@@ -69,16 +69,24 @@ conf_var_check () {
 # Check to make sure the directories on the host are valid.
 conf_path_check () {
     echo -e "${CYAN}Checking filepaths...${ENDCOLOR}\n"
-    for dir in "${DIRECTORIES[@]}"
+    selected_array_name="$1"
+    eval "selected_array=(\"\${${selected_array_name}[@]}\")"
+    for i in "${selected_array[@]}"
     do
-        if [[ -d "$dir" ]]; then
-            : # Do nothing. Path is valid.
-        else
-            echo -e "${RED}$dir doesn't exist. Verify path in config.${ENDCOLOR}"
-            exit 1
-        fi
+        echo "$i"
     done
-    echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
+
+
+    # for dir in "${DIRECTORIES[@]}"
+    # do
+    #     if [[ -d "$dir" ]]; then
+    #         : # Do nothing. Path is valid.
+    #     else
+    #         echo -e "${RED}$dir doesn't exist. Verify path in config.${ENDCOLOR}"
+    #         exit 1
+    #     fi
+    # done
+    # echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
 }
 
 # If no configuration file is seen it will prompt to generate one 
