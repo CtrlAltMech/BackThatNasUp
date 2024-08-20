@@ -24,26 +24,38 @@ readonly YELLOW="\e[33m"
 readonly CYAN="\e[36m"
 readonly ENDCOLOR="\e[0m"
 
+# Option variables
+selected_dir_group="" # Selected group of file paths go here
+job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
+run_check="" # Is the job a dry-run or not
 
 # Main Logic
 main () {
     conf_check
     conf_var_check
-    conf_path_check "$1"     
-    check_server_alive
+#    conf_path_check     
+#    check_server_alive
 
-    while getopts ":mMrRh" OPTION;
+    while getopts ":mMrRhs:" OPTION;
     do
         case "$OPTION" in
-            m) rsync_job "-m";;
-            M) rsync_job "-M";;
-            R) rsync_job "-R";;
-            r) rsync_job "-r";;
+            # m) rsync_job "-m";;
+            # M) rsync_job "-M";;
+            # R) rsync_job "-R";;
+            # r) rsync_job "-r";;
+            M) job_run_type="mirror"; run_check="run";;
+            R) job_run_type="no_mirror"; run_check="run";;
+            m) job_run_type="mirror"; run_check="dry_run";;
+            r) job_run_type="no_mirror"; run_check="dry_run";;
+            s) selected_dir_group=$OPTARG;;
             h) echo "Placeholder for help options";;
             \?) echo "Invalid selection placeholder";;
-
         esac
     done
+    echo "$job_run_type"
+    echo "$run_check"
+    echo "$selected_dir_group"
+    conf_path_check "$selected_dir_group"
 }
 
 # Check for configuration file
@@ -66,15 +78,16 @@ conf_var_check () {
     : "${ONSITE_SSHKEY_PATH:?$msg}"
 }
 
-# Check to make sure the directories on the host are valid.
+# Check to make sure the selected directories on the host are valid.
 conf_path_check () {
     echo -e "${CYAN}Checking filepaths...${ENDCOLOR}\n"
-    selected_array_name="$1"
-    eval "selected_array=(\"\${${selected_array_name}[@]}\")"
-    for i in "${selected_array[@]}"
+    dir_group="$1"
+    eval "selected_group=(\"\${${dir_group}[@]}\")"
+    for path in "${selected_group[@]}"
     do
-        echo "$i"
+        echo "$path"
     done
+    echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
 
 
     # for dir in "${DIRECTORIES[@]}"
