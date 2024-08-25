@@ -43,10 +43,10 @@ main () {
             # M) rsync_job "-M";;
             # R) rsync_job "-R";;
             # r) rsync_job "-r";;
-            M) job_run_type="mirror"; run_check="run";;
-            R) job_run_type="no_mirror"; run_check="run";;
-            m) job_run_type="mirror"; run_check="dry_run";;
-            r) job_run_type="no_mirror"; run_check="dry_run";;
+            M) job_run_type="--delete";;
+            R) :;;
+            m) job_run_type="--delete"; run_check="--dry-run";;
+            r) run_check="--dry-run";;
             s) selected_dir_group=$OPTARG;;
             h) echo "Placeholder for help options";;
             \?) echo "Invalid selection placeholder";;
@@ -56,6 +56,7 @@ main () {
     echo "$run_check"
     echo "$selected_dir_group"
     conf_path_check "$selected_dir_group"
+    rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
 }
 
 # Check for configuration file
@@ -81,25 +82,14 @@ conf_var_check () {
 # Check to make sure the selected directories on the host are valid.
 conf_path_check () {
     echo -e "${CYAN}Checking filepaths...${ENDCOLOR}\n"
-    dir_group="$1"
+    local dir_group="$1"
+    [ -z "$dir_group" ] && dir_group="DIRECTORIES"
     eval "selected_group=(\"\${${dir_group}[@]}\")"
     for path in "${selected_group[@]}"
     do
         echo "$path"
     done
     echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
-
-
-    # for dir in "${DIRECTORIES[@]}"
-    # do
-    #     if [[ -d "$dir" ]]; then
-    #         : # Do nothing. Path is valid.
-    #     else
-    #         echo -e "${RED}$dir doesn't exist. Verify path in config.${ENDCOLOR}"
-    #         exit 1
-    #     fi
-    # done
-    # echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
 }
 
 # If no configuration file is seen it will prompt to generate one 
@@ -189,38 +179,62 @@ conf_make () {
 
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
 rsync_job () {
-    # dry run flag without mirroring passed if no arguments are passed to script
-    if [[ $1 == "-r" ]]; then
-        for dir in "${DIRECTORIES[@]}"
+    local readonly rsync_ops="-avzhPpe"
+    local dir_group="$1"
+    local readonly dry_run_msg=$(echo -e "${YELLOW}Running DRY-RUN backup on $dir_group ${ENDCOLOR}")
+    local readonly run_msg=$(echo -e "${CYAN}Running backup on $dir_group ${ENDCOLOR}")
+    [ -z "$dir_group" ] && dir_group="DIRECTORIES"
+    eval "selected_group=(\"\${${dir_group}[@]}\")"
+    
+    if [[ $3 == "--dry-run" ]]; then
+        for dir in "${selected_group[@]}"
         do
-            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
-            rsync --dry-run -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-            echo ""
-        done
-    elif [[ $1 == "-R" ]]; then
-        for dir in "${DIRECTORIES[@]}"
-        do
-            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
-            rsync -avzhpPe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-            echo ""
-        done
-    elif [[ $1 == "-m" ]]; then
-        for dir in "${DIRECTORIES[@]}"
-        do
-            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
-            rsync --dry-run --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-            echo ""
-        done
-    elif [[ $1 == "-M" ]]; then
-        for dir in "${DIRECTORIES[@]}"
-        do
-            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
-            rsync --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            echo "$dir"
+            echo "$dry_run_msg"
+            rsync "$3" "$2" "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
     else
-        exit 1
+        for dir in "${selected_group[@]}"
+        do
+            echo "$dir"
+            echo "$run_msg"
+            rsync "$3" "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
+            echo ""
+        done
     fi
+    # dry run flag without mirroring passed if no arguments are passed to script
+    # if [[ $1 == "-r" ]]; then
+    #     for dir in "${DIRECTORIES[@]}"
+    #     do
+    #         echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
+    #         rsync --dry-run -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+    #         echo ""
+    #     done
+    # elif [[ $1 == "-R" ]]; then
+    #     for dir in "${DIRECTORIES[@]}"
+    #     do
+    #         echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
+    #         rsync -avzhpPe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+    #         echo ""
+    #     done
+    # elif [[ $1 == "-m" ]]; then
+    #     for dir in "${DIRECTORIES[@]}"
+    #     do
+    #         echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
+    #         rsync --dry-run --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+    #         echo ""
+    #     done
+    # elif [[ $1 == "-M" ]]; then
+    #     for dir in "${DIRECTORIES[@]}"
+    #     do
+    #         echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
+    #         rsync --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+    #         echo ""
+    #     done
+    # else
+    #     exit 1
+    # fi
 }
 
 main "$@"
