@@ -39,15 +39,11 @@ main () {
     while getopts ":mMrRhs:" OPTION;
     do
         case "$OPTION" in
-            # m) rsync_job "-m";;
-            # M) rsync_job "-M";;
-            # R) rsync_job "-R";;
-            # r) rsync_job "-r";;
-            M) job_run_type="--delete";;
-            R) :;;
-            m) job_run_type="--delete"; run_check="--dry-run";;
-            r) run_check="--dry-run";;
-            s) selected_dir_group=$OPTARG;;
+            M) job_run_type="--delete";; # Run mirror job mirroring source directory
+            R) :;; # Regular run with no-mirroring of source directory
+            m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
+            r) run_check="--dry-run";; # Dry run of run job
+            s) selected_dir_group=$OPTARG;; # Allows you to select a specific group of directories from config file
             h) echo "Placeholder for help options";;
             \?) echo "Invalid selection placeholder";;
         esac
@@ -183,6 +179,7 @@ rsync_job () {
     local dir_group="$1"
     local readonly dry_run_msg=$(echo -e "${YELLOW}Running DRY-RUN backup on $dir_group ${ENDCOLOR}")
     local readonly run_msg=$(echo -e "${CYAN}Running backup on $dir_group ${ENDCOLOR}")
+
     [ -z "$dir_group" ] && dir_group="DIRECTORIES"
     eval "selected_group=(\"\${${dir_group}[@]}\")"
     
@@ -191,7 +188,7 @@ rsync_job () {
         do
             echo "$dir"
             echo "$dry_run_msg"
-            rsync "$3" "$2" "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
+            rsync "$3" ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
     else
@@ -199,7 +196,7 @@ rsync_job () {
         do
             echo "$dir"
             echo "$run_msg"
-            rsync "$3" "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
+            rsync "$3" ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
     fi
