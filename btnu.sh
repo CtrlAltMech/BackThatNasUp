@@ -51,6 +51,7 @@ main () {
     echo "$job_run_type"
     echo "$run_check"
     echo "$selected_dir_group"
+    var_group_check "$selected_dir_group"
     conf_path_check "$selected_dir_group"
     rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
 }
@@ -86,6 +87,18 @@ conf_path_check () {
         echo "$path"
     done
     echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
+}
+
+var_group_check () {
+    local dir_group="$1"
+    [ -z "$dir_group" ] && dir_group="DIRECTORIES"
+    if [[ -v "$dir_group" ]]; then
+        :
+    else
+        echo "Directory group does not exist"
+        exit 1
+    fi
+
 }
 
 # If no configuration file is seen it will prompt to generate one 
