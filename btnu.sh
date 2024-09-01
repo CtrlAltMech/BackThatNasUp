@@ -33,7 +33,7 @@ run_check="" # Is the job a dry-run or not
 main () {
     conf_check # Checks to make sure a config exists
     conf_var_check # Makes sure the bare minimum configuration variables are set
-    opt_check "$@" # Checks for conflicing options set on command (Running a run and mirror flag at the same time)
+    opt_check "$@" # Checks for conflicing options set on command
 
     while getopts ":mMrRhs:" OPTION;
     do
@@ -47,9 +47,6 @@ main () {
             \?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
         esac
     done
-    echo "$job_run_type"
-    echo "$run_check"
-    echo "$selected_dir_group"
     var_group_check "$selected_dir_group"
     conf_path_check "$selected_dir_group"
     rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
@@ -105,17 +102,17 @@ var_group_check () {
 opt_check () {
     local run=""
     local mirror=""
-    for i in "$@";
+    for arg in "$@";
     do
-        if [[ "$i" =~ -[rR] ]]; then
-            run="$i"
-        elif [[ "$i" =~ -[mM] ]]; then
-            mirror="$i"
+       if [[ "$arg" =~ -[rR] ]]; then
+            run="$arg"
+        elif [[ "$arg" =~ -[mM] ]]; then
+            mirror="$arg"
         else
             :
         fi
     done
-    if [[ -n "$run" ]] && [[ -n "$mirror" ]]; then
+    if [[ -n "$run" && -n "$mirror" ]]; then
         echo "You can't have both these options, choose run OR mirror"
         exit 1
     else
@@ -212,25 +209,20 @@ conf_make () {
 rsync_job () {
     local readonly rsync_ops="-avzhPpe"
     local dir_group="$1"
-    local readonly dry_run_msg=$(echo -e "${YELLOW}Running DRY-RUN backup on $dir_group ${ENDCOLOR}")
-    local readonly run_msg=$(echo -e "${CYAN}Running backup on $dir_group ${ENDCOLOR}")
-
     [ -z "$dir_group" ] && dir_group="DIRECTORIES"
     eval "selected_group=(\"\${${dir_group}[@]}\")"
-    
+
     if [[ $3 == "--dry-run" ]]; then
         for dir in "${selected_group[@]}"
         do
-            echo "$dir"
-            echo "$dry_run_msg"
+            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
             rsync ${3:+"$3"} ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
     else
         for dir in "${selected_group[@]}"
         do
-            echo "$dir"
-            echo "$run_msg"
+            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
             rsync ${3:+"$3"} ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
