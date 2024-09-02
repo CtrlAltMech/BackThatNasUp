@@ -42,9 +42,10 @@ main () {
             R) :;; # Regular run with no-mirroring of source directory. Can't be ran if -M or -m option set.
             m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
             r) run_check="--dry-run";; # Dry run of run job
-            s) selected_dir_group=$OPTARG;; # Allows you to select a specific group of directories from config file
+            s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
             h) echo "Placeholder for help options";;
-            \?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
+            :) echo -e "${RED}-"$OPTARG" requires an argument${ENDCOLOR}" && exit 1;;
+            ?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
         esac
     done
     var_group_check "$selected_dir_group"
@@ -98,22 +99,25 @@ var_group_check () {
 
 }
 
-# Checks to make sure that conflicting option are not passed. Can be expanded later if needed.
+# Checks to make sure that conflicting options are not passed. Can be expanded later if needed.
 opt_check () {
     local run=""
     local mirror=""
     for arg in "$@";
     do
-       if [[ "$arg" =~ -[rR] ]]; then
-            run="$arg"
-        elif [[ "$arg" =~ -[mM] ]]; then
-            mirror="$arg"
-        else
-            :
-        fi
+       if [[ "$arg" =~ ^-[rR]$ ]]; then
+           run="$arg"
+       elif [[ "$arg" =~ ^-[mM]$ ]]; then
+           mirror="$arg"
+       elif [[ "$arg" =~ ^-[a-zA-Z]{2,}$ ]]; then
+           echo "TOO MANY CHARACTERS"
+           exit 1
+       else
+           :
+       fi
     done
     if [[ -n "$run" && -n "$mirror" ]]; then
-        echo "You can't have both these options, choose run OR mirror"
+        echo -e "${RED}You can't have both -r and -m options. Choose run OR mirror${ENDCOLOR}"
         exit 1
     else
         :
