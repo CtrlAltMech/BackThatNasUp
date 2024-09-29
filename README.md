@@ -1,17 +1,19 @@
 # BackThatNasUp
 
-A configurable backup script to automate keeping your clients or servers backed up locally and remotely.
+A versatile, configurable backup script designed to automate local and remote backups for clients or servers, organized by directory groupings defined in the configuration file."
 
 This is still VERY much a work-in-progress. It backs stuff up via a config....that's all at the moment.
 
 ## Current functionality
 
 - Will generate a configuration file when running script for the first time (with or without arguments).
-- Will check to make sure all filepaths in config exist before running
-- Verify the local paths in config exist
-- Verify servers are up
-- Will run a dry-run to check what will be backed up.
-- Will backup to all directories listed in the configuration file (with or without mirroring depending on flags passed)
+- Will check to make sure all filepaths in config exist before running.
+- Verify the local paths in config exist.
+- Verify backup servers are up.
+- Ability to run a dry-run to check what will be backed up with either a mirror or default backup.
+- Ability to run a live-run with either a mirror or default backup.
+- Ability to backup to all directories listed in the default directory group DIRECTORIES.
+- Will backup to a user specified directory grouping in the configuration file.
 
 ## Requirements
 
@@ -29,7 +31,7 @@ To use btnu, follow the instructions below:
 
 2. Navigate to the cloned repository directory using the command `cd BackThatNasUp`
 3. Make the sspush script executable using the command `chmod +x btnu.sh`
-4. Run the script with `./btnu.sh`
+4. Run the script with `./btnu.sh` to create initial config file
 
 ## Usage
 
@@ -78,14 +80,20 @@ To use btnu, follow the instructions below:
 3. When the configuration file is filled out run you can run the script using one of the flags below.
 
 ## Flags :triangular_flag_on_post:
-- `btnu.sh` - Will create a configuration file if none is present. If one is you will be presented with a help dialogue.
+- `btnu.sh` - Will create a configuration file if none is present. If one is you will be presented with a help dialogue
+- `btnu.sh -h` - Will prompt with help dialogue
 - `btnu.sh -m` - Will run a dry-run of a mirror backup job
 - `btnu.sh -M` - Will run a mirror backup job
 - `btnu.sh -r` - Will run a dry-run backup without mirroring (-avzhpe rsync options)
 - `btnu.sh -R` - Will run a backup without mirroring (-avzhpe rsync options)
+- `btnu.sh <run-type> -s <directory group name>` - Will run backup on specified directory group
 
 *MORE GRANULAR CONTROLS TO COME IN THE FUTURE*
 
+## Configuration :open_book:
+- Directory groups can be added to the configurtion file by adding another list under the DIRECTORY list.
+- Follow the formatting of the DIRECTORY list and specify your own name.
+- This group can be selected with the `-s` flag when running your backup.
 
 ## Contributing :handshake:
 I would love to hear if there are any bugs or a requested feature! :heart:
