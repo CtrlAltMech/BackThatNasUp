@@ -105,10 +105,16 @@ opt_check () {
     local mirror=""
     for arg in "$@";
     do
-       if [[ "$arg" =~ ^-[rR]$ ]]; then
+       if [[ "$arg" =~ ^-[rR]$ ]] && [[ -z "$run" ]]; then
            run="$arg"
-       elif [[ "$arg" =~ ^-[mM]$ ]]; then
+       elif [[ -n "$run" ]]; then
+           echo "Conflicting run argument, can only have dry-run or live-run"
+           exit 1
+       elif [[ "$arg" =~ ^-[mM]$ ]] && [[ -z "$mirror" ]]; then
            mirror="$arg"
+       elif [[ -n "$mirror" ]]; then
+           echo "Conflicting run argument, can only have dry-mirror or live-mirror"
+           exit 1
        elif [[ "$arg" =~ ^-[a-zA-Z]{2,}$ ]]; then
            echo "TOO MANY CHARACTERS"
            exit 1
@@ -120,7 +126,7 @@ opt_check () {
         echo -e "${RED}You can't have both -r and -m options. Choose run OR mirror${ENDCOLOR}"
         exit 1
     elif [[ -z "$run" && -z "$mirror" ]] || [[ "$1" == "$2" ]]; then
-        echo "You need to have some argument (placehold for help menu)"
+        echo "Improper argument setup passed (placeholder for help menu)"
         exit 1
     else
         :
