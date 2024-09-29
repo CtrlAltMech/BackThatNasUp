@@ -24,26 +24,33 @@ readonly YELLOW="\e[33m"
 readonly CYAN="\e[36m"
 readonly ENDCOLOR="\e[0m"
 
+# Option variables
+selected_dir_group="" # Selected group of file paths go here
+job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
+run_check="" # Is the job a dry-run or not
 
 # Main Logic
 main () {
-    conf_check
-    conf_var_check
-    conf_path_check
-    check_server_alive
+    conf_check # Checks to make sure a config exists
+    conf_var_check # Makes sure the bare minimum configuration variables are set
+    opt_check "$@" # Checks for conflicing options set on command
 
-    while getopts ":mMrRh" OPTION;
+    while getopts ":mMrRhs:" OPTION;
     do
         case "$OPTION" in
-            m) rsync_job "-m";;
-            M) rsync_job "-M";;
-            R) rsync_job "-R";;
-            r) rsync_job "-r";;
+            M) job_run_type="--delete";; # Run mirror job mirroring source directory. Can't be ran -m or -M option.
+            R) :;; # Regular run with no-mirroring of source directory. Can't be ran if -M or -m option set.
+            m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
+            r) run_check="--dry-run";; # Dry run of run job
+            s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
             h) echo "Placeholder for help options";;
-            \?) echo "Invalid selection placeholder";;
-
+            :) echo -e "${RED}-"$OPTARG" requires an argument${ENDCOLOR}" && exit 1;;
+            ?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
         esac
     done
+    var_group_check "$selected_dir_group"
+    conf_path_check "$selected_dir_group"
+    rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
 }
 
 # Check for configuration file
@@ -66,19 +73,64 @@ conf_var_check () {
     : "${ONSITE_SSHKEY_PATH:?$msg}"
 }
 
-# Check to make sure the directories on the host are valid.
+# Check to make sure the selected directories on the host are valid.
 conf_path_check () {
     echo -e "${CYAN}Checking filepaths...${ENDCOLOR}\n"
-    for dir in "${DIRECTORIES[@]}"
+    local dir_group="$1"
+    [ -z "$dir_group" ] && dir_group="DIRECTORIES"
+    eval "selected_group=(\"\${${dir_group}[@]}\")"
+    for path in "${selected_group[@]}"
     do
-        if [[ -d "$dir" ]]; then
-            : # Do nothing. Path is valid.
-        else
-            echo -e "${RED}$dir doesn't exist. Verify path in config.${ENDCOLOR}"
-            exit 1
-        fi
+        echo "$path"
     done
     echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
+}
+
+# Check to make sure the group you select actually exists. Exit if not.
+var_group_check () {
+    local dir_group="$1"
+    [[ -z "$dir_group" ]] && dir_group="DIRECTORIES"
+    if [[ -v "$dir_group" ]]; then
+        :
+    else
+        echo -e "${RED}Directory group does not exist${ENDCOLOR}"
+        exit 1
+    fi
+
+}
+
+# Checks to make sure that conflicting options are not passed. Can be expanded later if needed.
+opt_check () {
+    local run=""
+    local mirror=""
+    for arg in "$@";
+    do
+       if [[ "$arg" =~ ^-[rR]$ ]] && [[ -z "$run" ]]; then
+           run="$arg"
+       elif [[ -n "$run" ]]; then
+           echo "Conflicting run argument, can only have dry-run or live-run"
+           exit 1
+       elif [[ "$arg" =~ ^-[mM]$ ]] && [[ -z "$mirror" ]]; then
+           mirror="$arg"
+       elif [[ -n "$mirror" ]]; then
+           echo "Conflicting run argument, can only have dry-mirror or live-mirror"
+           exit 1
+       elif [[ "$arg" =~ ^-[a-zA-Z]{2,}$ ]]; then
+           echo "TOO MANY CHARACTERS"
+           exit 1
+       else
+           :
+       fi
+    done
+    if [[ -n "$run" && -n "$mirror" ]]; then
+        echo -e "${RED}You can't have both -r and -m options. Choose run OR mirror${ENDCOLOR}"
+        exit 1
+    elif [[ -z "$run" && -z "$mirror" ]] || [[ "$1" == "$2" ]]; then
+        echo "Improper argument setup passed (placeholder for help menu)"
+        exit 1
+    else
+        :
+    fi
 }
 
 # If no configuration file is seen it will prompt to generate one 
@@ -168,40 +220,29 @@ conf_make () {
 
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
 rsync_job () {
-    # dry run flag without mirroring passed if no arguments are passed to script
-    if [[ $1 == "-r" ]]; then
-        for dir in "${DIRECTORIES[@]}"
+    local readonly rsync_ops="-avzhPpe"
+    local dir_group="$1"
+    [ -z "$dir_group" ] && dir_group="DIRECTORIES"
+    eval "selected_group=(\"\${${dir_group}[@]}\")"
+
+    if [[ $3 == "--dry-run" ]]; then
+        for dir in "${selected_group[@]}"
         do
             echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
-            rsync --dry-run -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-            echo ""
-        done
-    elif [[ $1 == "-R" ]]; then
-        for dir in "${DIRECTORIES[@]}"
-        do
-            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
-            rsync -avzhpPe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-            echo ""
-        done
-    elif [[ $1 == "-m" ]]; then
-        for dir in "${DIRECTORIES[@]}"
-        do
-            echo -e "${YELLOW}Running DRY-RUN backup on $dir ${ENDCOLOR}"
-            rsync --dry-run --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
-            echo ""
-        done
-    elif [[ $1 == "-M" ]]; then
-        for dir in "${DIRECTORIES[@]}"
-        do
-            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
-            rsync --delete -avzhPpe "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH" 
+            rsync ${3:+"$3"} ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
     else
-        exit 1
+        for dir in "${selected_group[@]}"
+        do
+            echo -e "${CYAN}Running backup on $dir ${ENDCOLOR}"
+            rsync ${3:+"$3"} ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
+            echo ""
+        done
     fi
 }
 
+# Run the script
 main "$@"
 
 
