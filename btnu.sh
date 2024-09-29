@@ -119,6 +119,9 @@ opt_check () {
     if [[ -n "$run" && -n "$mirror" ]]; then
         echo -e "${RED}You can't have both -r and -m options. Choose run OR mirror${ENDCOLOR}"
         exit 1
+    elif [[ -z "$run" && -z "$mirror" ]] || [[ "$1" == "$2" ]]; then
+        echo "You need to have some argument (placehold for help menu)"
+        exit 1
     else
         :
     fi
