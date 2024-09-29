@@ -1,6 +1,6 @@
 # BackThatNasUp
 
-A versatile, configurable backup script designed to automate local and remote backups for clients or servers, organized by directory groupings defined in the configuration file."
+A versatile, configurable backup script designed to automate local and remote backups for clients or servers, organized by directory groupings defined in the configuration file.
 
 This is still VERY much a work-in-progress. It backs stuff up via a config....that's all at the moment.
 
