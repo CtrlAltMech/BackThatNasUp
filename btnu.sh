@@ -28,6 +28,7 @@ readonly ENDCOLOR="\e[0m"
 selected_dir_group="" # Selected group of file paths go here
 job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
 run_check="" # Is the job a dry-run or not
+log_option="" # Save a log file if option set
 
 # Main Logic
 main () {
@@ -35,7 +36,7 @@ main () {
     conf_var_check # Makes sure the bare minimum configuration variables are set
     opt_check "$@" # Checks for conflicing options set on command
 
-    while getopts ":mMrRhs:" OPTION;
+    while getopts ":mMrRhLs:" OPTION;
     do
         case "$OPTION" in
             M) job_run_type="--delete";; # Run mirror job mirroring source directory. Can't be ran -m or -M option.
@@ -43,6 +44,7 @@ main () {
             m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
             r) run_check="--dry-run";; # Dry run of run job
             s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
+            L) log_option="yes";;
             h) echo "Placeholder for help options";;
             :) echo -e "${RED}-"$OPTARG" requires an argument${ENDCOLOR}" && exit 1;;
             ?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
@@ -50,7 +52,11 @@ main () {
     done
     var_group_check "$selected_dir_group"
     conf_path_check "$selected_dir_group"
-    rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
+    if [[ -z $log_option ]]; then
+        rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
+    else
+        rsync_job "$selected_dir_group" "$job_run_type" "$run_check" | tee "${LOG_PATH}backup$(date +"%Y%m%d_%H%M%S").txt"
+    fi
 }
 
 # Check for configuration file
@@ -65,12 +71,13 @@ conf_check () {
 
 # Check to make sure the bare-minimum config variables are set.
 conf_var_check () {
-    local msg="$(echo -e "${RED}ONSITE variables and at least one directory need to be set in config.${ENDCOLOR}")"
+    local msg="$(echo -e "${RED}ONSITE and LOG_PATH variables and at least one directory need to be set in config.${ENDCOLOR}")"
     : "${DIRECTORIES:?$msg}"
     : "${ONSITE_BACKUP_HOST:?$msg}"
     : "${ONSITE_BACKUP_PATH:?$msg}"
     : "${ONSITE_USERNAME:?$msg}"
     : "${ONSITE_SSHKEY_PATH:?$msg}"
+    : "${LOG_PATH:?$msg}"
 }
 
 # Check to make sure the selected directories on the host are valid.
