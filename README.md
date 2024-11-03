@@ -86,7 +86,7 @@ To use btnu, follow the instructions below:
 - `btnu.sh -M` - Will run a mirror backup job
 - `btnu.sh -r` - Will run a dry-run backup without mirroring (-avzhpe rsync options)
 - `btnu.sh -R` - Will run a backup without mirroring (-avzhpe rsync options)
-- `btnu.sh <run-type> -s <directory group name>` - Will run backup on specified directory group
+- `btnu.sh -s <directory group name> <run-type>` - Will run backup on specified directory group
 
 *MORE GRANULAR CONTROLS TO COME IN THE FUTURE*
 
