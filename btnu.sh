@@ -28,7 +28,7 @@ readonly ENDCOLOR="\e[0m"
 selected_dir_group="" # Selected group of file paths go here
 job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
 run_check="" # Is the job a dry-run or not
-log_option="" # Save a log file if option set
+log_option=false # Save a log file if option set
 
 # Main Logic
 main () {
@@ -44,17 +44,18 @@ main () {
             m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
             r) run_check="--dry-run";; # Dry run of run job
             s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
-            L) log_option="yes";;
+            L) log_option=true;;
             h) echo "Placeholder for help options";;
             :) echo -e "${RED}-"$OPTARG" requires an argument${ENDCOLOR}" && exit 1;;
             ?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
         esac
     done
+
     var_group_check "$selected_dir_group"
     conf_path_check "$selected_dir_group"
-    if [[ -z $log_option ]]; then
+    if [[ $log_option = false ]]; then # Runs without logging since -L flag was not passed
         rsync_job "$selected_dir_group" "$job_run_type" "$run_check"
-    else
+    else # Run with logging since -L flag was passed
         rsync_job "$selected_dir_group" "$job_run_type" "$run_check" | tee "${LOG_PATH}backup$(date +"%Y%m%d_%H%M%S").txt"
     fi
 }
@@ -82,7 +83,7 @@ conf_var_check () {
 
 # Check to make sure the selected directories on the host are valid.
 conf_path_check () {
-    echo -e "${CYAN}Checking filepaths...${ENDCOLOR}\n"
+    echo -e "\n${CYAN}Checking filepaths...${ENDCOLOR}\n"
     local dir_group="$1"
     [ -z "$dir_group" ] && dir_group="DIRECTORIES"
     eval "selected_group=(\"\${${dir_group}[@]}\")"
@@ -90,7 +91,7 @@ conf_path_check () {
     do
         echo "$path"
     done
-    echo -e "${GREEN}All filepaths are valid!${ENDCOLOR}\n"
+    echo -e "\n${GREEN}All filepaths are valid!${ENDCOLOR}\n------------------------\n"
 }
 
 # Check to make sure the group you select actually exists. Exit if not.
