@@ -194,6 +194,8 @@ conf_make () {
 		'/Example_directory/'
 		'/Another/Example/'
 		)
+	# Path to put log files
+	LOG_PATH=""
 	
 	# Meant to be a different host, but located locally
 	# Enter IP or hostname.
