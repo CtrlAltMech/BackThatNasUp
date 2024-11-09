@@ -48,9 +48,9 @@ To use btnu, follow the instructions below:
 		'/Another/Example/'
 		)
 	
-    # Path to put log files
-    LOG_PATH=""
-    
+	# Path to put log files
+	LOG_PATH=""
+	
 	# Meant to be a different host, but located locally
 	# Enter IP or hostname.
 	ONSITE_BACKUP_HOST=""
