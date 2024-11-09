@@ -27,7 +27,7 @@ To use btnu, follow the instructions below:
 
 1. Clone the BackThatNasUp repository to your local machine using the command:
 
-    `https://github.com/CtrlAltMech/BackThatNasUp.git`
+    `git clone https://github.com/CtrlAltMech/BackThatNasUp.git`
 
 2. Navigate to the cloned repository directory using the command `cd BackThatNasUp`
 3. Make the btnu script executable using the command `chmod +x btnu.sh`
