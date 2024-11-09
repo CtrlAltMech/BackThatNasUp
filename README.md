@@ -37,7 +37,7 @@ To use btnu, follow the instructions below:
 
 1. On the first use (when no config file is present) you will be prompted to generate an empty config file.
 
-*Note: All ONSITE variables are required as well as at least one DIRECTORIES path*
+*Note: All ONSITE variables are required, at least one DIRECTORIES path, and a path for log files (even if not used)*
 
 ```
 	# Config file for btnu
@@ -47,6 +47,9 @@ To use btnu, follow the instructions below:
 		'/Example_directory/'
 		'/Another/Example/'
 		)
+	
+	# Path to put log files
+	LOG_PATH=""
 	
 	# Meant to be a different host, but located locally
 	# Enter IP or hostname.
@@ -87,6 +90,7 @@ To use btnu, follow the instructions below:
 - `btnu.sh -r` - Will run a dry-run backup without mirroring (-avzhpe rsync options)
 - `btnu.sh -R` - Will run a backup without mirroring (-avzhpe rsync options)
 - `btnu.sh -s <directory group name> <run-type>` - Will run backup on specified directory group
+- `btnu.sh -L` - Will run with logging on. Needs to be combined with run type with or without group selection.
 
 *MORE GRANULAR CONTROLS TO COME IN THE FUTURE*
 
