@@ -37,7 +37,7 @@ To use btnu, follow the instructions below:
 
 1. On the first use (when no config file is present) you will be prompted to generate an empty config file.
 
-*Note: All ONSITE variables are required as well as at least one DIRECTORIES path*
+*Note: All ONSITE variables are required, at least one DIRECTORIES path, and a path for log files (even if not used)*
 
 ```
 	# Config file for btnu
