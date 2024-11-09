@@ -115,12 +115,12 @@ opt_check () {
     do
        if [[ "$arg" =~ ^-[rR]$ ]] && [[ -z "$run" ]]; then
            run="$arg"
-       elif [[ -n "$run" ]]; then
+       elif [[ -n "$run" ]] && [[ "$arg" =~ ^-[rR]$ ]]; then
            echo "Conflicting run argument, can only have dry-run or live-run"
            exit 1
        elif [[ "$arg" =~ ^-[mM]$ ]] && [[ -z "$mirror" ]]; then
            mirror="$arg"
-       elif [[ -n "$mirror" ]]; then
+       elif [[ -n "$mirror" ]] && [[ "$arg" =~ ^-[mM]$ ]]; then
            echo "Conflicting run argument, can only have dry-mirror or live-mirror"
            exit 1
        elif [[ "$arg" =~ ^-[a-zA-Z]{2,}$ ]]; then
