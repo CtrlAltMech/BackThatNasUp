@@ -81,7 +81,7 @@ conf_var_check () {
     : "${LOG_PATH:?$msg}"
 }
 
-# Check to make sure the selected directories on the host are valid.
+# Check to make sure the selected directories on the host are valid and formatted properly.
 conf_path_check () {
     echo -e "\n${CYAN}Checking filepaths...${ENDCOLOR}\n"
     local dir_group="$1"
@@ -90,7 +90,15 @@ conf_path_check () {
     for path in "${selected_group[@]}"
     do
         echo "$path"
-    done
+    done    
+    
+    # Verifies LOG_PATH ends in a '/'
+    # since we're concatenating the path with the name of the generated file
+    local log_path_len=${#LOG_PATH}
+    local last_char=${LOG_PATH:log_path_len-1:1}
+    if [[ $last_char != '/' ]]; then
+        LOG_PATH=$LOG_PATH'/'
+    fi
     echo -e "\n${GREEN}All filepaths are valid!${ENDCOLOR}\n------------------------\n"
 }
 
