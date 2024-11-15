@@ -36,7 +36,7 @@ main () {
     conf_var_check # Makes sure the bare minimum configuration variables are set
     opt_check "$@" # Checks for conflicing options set on command
 
-    while getopts ":mMrRhLs:" OPTION;
+    while getopts ":mMrRhLPs:" OPTION;
     do
         case "$OPTION" in
             M) job_run_type="--delete";; # Run mirror job mirroring source directory. Can't be ran -m or -M option.
@@ -45,6 +45,7 @@ main () {
             r) run_check="--dry-run";; # Dry run of run job
             s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
             L) log_option=true;;
+            P) echo "Placeholder for remote push option";;
             h) echo "Placeholder for help options";;
             :) echo -e "${RED}-"$OPTARG" requires an argument${ENDCOLOR}" && exit 1;;
             ?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
