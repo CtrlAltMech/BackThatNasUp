@@ -29,6 +29,7 @@ selected_dir_group="" # Selected group of file paths go here
 job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
 run_check="" # Is the job a dry-run or not
 log_option=false # Save a log file if option set
+remote_push_type="" # Sets the type of remote push specified
 
 # Main Logic
 main () {
@@ -36,7 +37,7 @@ main () {
     conf_var_check # Makes sure the bare minimum configuration variables are set
     opt_check "$@" # Checks for conflicing options set on command
 
-    while getopts ":mMrRhLPs:" OPTION;
+    while getopts ":mMrRhLP:s:" OPTION;
     do
         case "$OPTION" in
             M) job_run_type="--delete";; # Run mirror job mirroring source directory. Can't be ran -m or -M option.
@@ -44,9 +45,9 @@ main () {
             m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
             r) run_check="--dry-run";; # Dry run of run job
             s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
-            L) log_option=true;;
-            P) echo "Placeholder for remote push option";;
-            h) echo "Placeholder for help options";;
+            L) log_option=true;; # Set true if we want to save logs
+            P) remote_push_type="$OPTARG";; # Set the remote push type
+            h) help_prompt;;
             :) echo -e "${RED}-"$OPTARG" requires an argument${ENDCOLOR}" && exit 1;;
             ?) echo -e "${RED}Invalid argument passed.${ENDCOLOR}" && exit 1;;
         esac
@@ -59,7 +60,23 @@ main () {
     else # Run with logging since -L flag was passed
         rsync_job "$selected_dir_group" "$job_run_type" "$run_check" | tee "${LOG_PATH}backup$(date +"%Y%m%d_%H%M%S").txt"
     fi
+
+    if [[ -z $remote_push_type ]]; then remote_push; fi
 }
+
+# Remote push function
+remote_push () {
+    local push_type="$1"
+
+    ssh -i "$ONSITE_SSHKEY_PATH" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST"\
+    "ssh -i $OFFSITE_SSHKEY_PATH $OFFSITE_USERNAME@$OFFSITE_BACKUP_HOST 'touch test4.txt && echo ls'"
+}
+
+# Help prompt
+help_prompt () {
+    :
+}
+
 
 # Check for configuration file
 conf_check () {
