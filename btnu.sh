@@ -60,16 +60,27 @@ main () {
     else # Run with logging since -L flag was passed
         rsync_job "$selected_dir_group" "$job_run_type" "$run_check" | tee "${LOG_PATH}backup$(date +"%Y%m%d_%H%M%S").txt"
     fi
-
-    if [[ -z $remote_push_type ]]; then remote_push; fi
+    
+    remote_push
+#    if [[ -z $remote_push_type ]]; then remote_push; fi
 }
 
 # Remote push function
 remote_push () {
-    local push_type="$1"
+    # local push_type="$1"
+    # local remote_push_command="touch test6 && echo test2"
+    # remote_push_command="rsync -avzhpPe \"ssh -i ~/.ssh/id_thiccpad\" /mnt/backup_drive_test/screenshots mech@192.168.102.219:/home/mech"
+    local remote_push_command="rsync -avzhpPe 'ssh -i $OFFSITE_SSHKEY_PATH' /mnt/backup_drive_test/screenshots mech@192.168.102.219:/home/mech"   # remote_push_command="rsync -avzhpPe 'ssh -i /home/mech/.ssh/id_thiccpad' /mnt/backup_drive_test/screenshots mech@192.168.102.219:/home/mech"
+#rsync -avzhpPe "ssh -i /home/mech/.ssh/id_thiccpad" /mnt/backup_drive_test/screenshots/ mech@192.168.102.219:/home/mech
+    # rsync ${3:+"$3"} ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
+    # local remote_connection="ssh -i $OFFSITE_SSHKEY_PATH $OFFSITE_USERNAME@$OFFSITE_BACKUP_HOST 'touch test5 && echo test'"
+    # remote_connection="ssh -i '$OFFSITE_SSHKEY_PATH' '$OFFSITE_USERNAME'@'$OFFSITE_BACKUP_HOST' \"$remote_push_command\""
+    # remote_connection="ssh -i '$OFFSITE_SSHKEY_PATH' '$OFFSITE_USERNAME'@'$OFFSITE_BACKUP_HOST'"
 
-    ssh -i "$ONSITE_SSHKEY_PATH" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST"\
-    "ssh -i $OFFSITE_SSHKEY_PATH $OFFSITE_USERNAME@$OFFSITE_BACKUP_HOST 'touch test4.txt && echo ls'"
+
+    # ssh -i "$ONSITE_SSHKEY_PATH" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST" "rsync -avzhpPe 'ssh -i $OFFSITE_SSHKEY_PATH' /mnt/backup_drive_test/screenshots mech@192.168.102.219:/home/mech"
+    ssh -i "$ONSITE_SSHKEY_PATH" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST" "$remote_push_command"
+#    "ssh -i $OFFSITE_SSHKEY_PATH $OFFSITE_USERNAME@$OFFSITE_BACKUP_HOST 'touch test4.txt && echo ls'"
 }
 
 # Help prompt
