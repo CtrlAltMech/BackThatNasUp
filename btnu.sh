@@ -29,20 +29,23 @@ selected_dir_group="" # Selected group of file paths go here
 job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
 run_check="" # Is the job a dry-run or not
 log_option=false # Save a log file if option set
+localhost_dir=""
 
 # Main Logic
 main () {
     conf_check # Checks to make sure a config exists
-    conf_var_check # Makes sure the bare minimum configuration variables are set
+    conf_var_check "$1" # Makes sure the bare minimum configuration variables are set
     opt_check "$@" # Checks for conflicing options set on command
 
-    while getopts ":mMrRhLs:" OPTION;
+    while getopts ":mMrKkRhLs:" OPTION;
     do
         case "$OPTION" in
             M) job_run_type="--delete";; # Run mirror job mirroring source directory. Can't be ran -m or -M option.
             R) :;; # Regular run with no-mirroring of source directory. Can't be ran if -M or -m option set.
             m) job_run_type="--delete"; run_check="--dry-run";; # Dry run of mirror job
             r) run_check="--dry-run";; # Dry run of run job
+            K) echo -e "Option K";; #Placeholder for localhost option 
+            k) echo -e "Option k";; #Placeholder for dryrun localhost option
             s) selected_dir_group="$OPTARG";; # Set the variable for the selected group.
             L) log_option=true;;
             h) echo "Placeholder for help options";;
@@ -72,6 +75,7 @@ conf_check () {
 
 # Check to make sure the bare-minimum config variables are set.
 conf_var_check () {
+    echo "$1"
     local msg="$(echo -e "${RED}ONSITE and LOG_PATH variables and at least one directory need to be set in config.${ENDCOLOR}")"
     : "${DIRECTORIES:?$msg}"
     : "${ONSITE_BACKUP_HOST:?$msg}"
@@ -112,7 +116,6 @@ var_group_check () {
         echo -e "${RED}Directory group does not exist${ENDCOLOR}"
         exit 1
     fi
-
 }
 
 # Checks to make sure that conflicting options are not passed. Can be expanded later if needed.
@@ -202,6 +205,10 @@ conf_make () {
 		'/Example_directory/'
 		'/Another/Example/'
 		)
+  
+  # Localhost directory to run a backup (Not required)
+  LOCALHOST_DIR=""
+
 	# Path to put log files
 	LOG_PATH=""
 	
@@ -236,9 +243,18 @@ conf_make () {
     exit 0
 }
 
+
+
+# Option variables
+# selected_dir_group="" # Selected group of file paths go here
+# job_run_type="" # Tells us whether this is a mirror job or some other type (Only 2 types for now, mirror and not)
+# run_check="" # Is the job a dry-run or not
+# log_option=false # Save a log file if option set
+
 # Handles the actual running of rsync job based on parameters passed to it. More functionality to come.
 rsync_job () {
     local readonly rsync_ops="-avzhPpe"
+    local readonly rsync_local_ops="-avzhPp"
     local dir_group="$1"
     [ -z "$dir_group" ] && dir_group="DIRECTORIES"
     eval "selected_group=(\"\${${dir_group}[@]}\")"
@@ -250,6 +266,8 @@ rsync_job () {
             rsync ${3:+"$3"} ${2:+"$2"} "$rsync_ops" "ssh -i $ONSITE_SSHKEY_PATH" "$dir" "$ONSITE_USERNAME"@"$ONSITE_BACKUP_HOST":"$ONSITE_BACKUP_PATH"
             echo ""
         done
+#    elif [[ condition ]]; then
+      
     else
         for dir in "${selected_group[@]}"
         do
@@ -262,14 +280,3 @@ rsync_job () {
 
 # Run the script
 main "$@"
-
-
-
-
-
-
-
-
-
-
-

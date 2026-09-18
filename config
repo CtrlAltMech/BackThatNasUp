@@ -6,6 +6,9 @@ DIRECTORIES=(
         '/Another/Example'
         )
 
+# Localhost directory to run a backup (Not required)
+LOCALHOST_DIR=""
+
 # Meant to be a different host, but located on-site. 
 # Enter IP or hostname.
 ONSITE_BACKUP_HOST=""
