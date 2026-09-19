@@ -75,14 +75,22 @@ conf_check () {
 
 # Check to make sure the bare-minimum config variables are set.
 conf_var_check () {
-    echo "$1"
-    local msg="$(echo -e "${RED}ONSITE and LOG_PATH variables and at least one directory need to be set in config.${ENDCOLOR}")"
-    : "${DIRECTORIES:?$msg}"
-    : "${ONSITE_BACKUP_HOST:?$msg}"
-    : "${ONSITE_BACKUP_PATH:?$msg}"
-    : "${ONSITE_USERNAME:?$msg}"
-    : "${ONSITE_SSHKEY_PATH:?$msg}"
-    : "${LOG_PATH:?$msg}"
+    # Only required variables for -k or -K localhost backup to function.
+    if [[ $1 =~ ^-[kK]$ ]]; then
+      local msg="$(echo -e "${RED}LOCALHOST_DIR and LOG_PATH variables and at least one directory need to be set if using -k or -K.${ENDCOLOR}")"
+      : "${DIRECTORIES:?$msg}"
+      : "${LOCALHOST_DIR:?$msg}"
+      : "${LOG_PATH:?$msg}"
+    else
+      # Required variables for local site (different device, not localhost) to function.
+      local msg="$(echo -e "${RED}ONSITE and LOG_PATH variables and at least one directory need to be set in config.${ENDCOLOR}")"
+      : "${DIRECTORIES:?$msg}"
+      : "${ONSITE_BACKUP_HOST:?$msg}"
+      : "${ONSITE_BACKUP_PATH:?$msg}"
+      : "${ONSITE_USERNAME:?$msg}"
+      : "${ONSITE_SSHKEY_PATH:?$msg}"
+      : "${LOG_PATH:?$msg}"
+    fi
 }
 
 # Check to make sure the selected directories on the host are valid and formatted properly.
